@@ -1,0 +1,99 @@
+@font-face {
+    font-family: "Gotham Medium";
+    src: local("Gotham Medium"), url("./Gotham Medium.otf") format("OpenType");
+}
+
+@import "~/node_modules/rfs/scss";
+
+/* Font properties */
+$font-size-h1: 2.5em;
+$font-size-h2: 2.2em;
+$font-size-h3: 1.8em;
+$font-size-h4: 1.4em;
+$font-size-h5: 1.2em;
+$font-size-h6: 1.0em;
+$font-size-p: 0.9em;
+
+
+h1 {
+    @include font-size($font-size-h1);
+    font-weight: normal;
+    margin: 5px 0;
+
+    cursor: default;
+}
+
+h2 {
+    @include font-size($font-size-h2);
+    font-weight: normal;
+
+    cursor: default;
+}
+
+h3 {
+    @include font-size($font-size-h3);
+    font-weight: normal;
+    
+    cursor: default;
+}
+
+h4 {
+    @include font-size($font-size-h4);
+    font-weight: normal;
+    
+    cursor: default;
+}
+
+h5 {
+    @include font-size($font-size-h5);
+    font-weight: normal;
+    
+    cursor: default;
+}
+
+h6 {
+    @include font-size($font-size-h6);
+    font-weight: normal;
+    
+    cursor: default;
+}
+
+p {
+    font-family: "Gotham Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @include font-size($font-size-p);
+    font-weight: normal;
+
+    cursor: default;
+    color: white;
+}
+
+a {
+    font-family: "Gotham Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @include font-size($font-size-p);
+
+    font-weight: normal;
+    text-decoration: none;
+    transition: background-color 0.1s ease-in-out;
+}
+
+span {
+    font-family: "Gotham Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @include font-size($font-size-p);
+
+    font-weight: normal;}
+
+li {
+    @include font-size($font-size-p);
+    font-weight: normal;
+}
+
+label {
+    font-family: "Gotham Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    @include font-size($font-size-p);
+    font-weight: normal;
+}
+
+button {
+    @include font-size($font-size-p);
+    font-family: "Gotham Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
