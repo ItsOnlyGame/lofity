@@ -9,9 +9,13 @@
             </div>
         </div>
 
-        <div>
+        <div class="track-list">
             <div v-for="(item, index) of playlist.tracks" :key="index">
-                {{ item.name }}
+                <TrackItem
+                    :track-item="item"
+                    :menu-options="['add-to-queue']"
+                    @play-click="play(item)"
+                />
             </div>
         </div>
     </div>
@@ -19,8 +23,11 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import TrackItem from '@/components/TrackItem.vue'
+import { AudioTrack } from '@/types/Audio'
 
 export default Vue.extend({
+    components: { TrackItem },
     data () {
         return {
             playlist: this.$playlist.getPlaylist(this.$route.params.id)
@@ -29,6 +36,11 @@ export default Vue.extend({
     methods: {
         update() {
             console.log('Update playlist')
+        },
+        play(item: AudioTrack) {
+            this.$player.play(item, { volume: this.$store.getters.volume as number }).then(track => {
+                this.$store.commit('player/setTrack', track.info)
+            })
         }
     }
 })
@@ -51,6 +63,10 @@ export default Vue.extend({
         color: white;
         margin: 0;
     }
+}
+
+#content .track-list {
+    margin: 2rem 0;
 }
 
 </style>

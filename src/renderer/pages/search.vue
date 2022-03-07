@@ -1,13 +1,12 @@
 <template>
     <div>
-        <input v-model="query" type="text" placeholder="Artist, songs, or podcasts" @change="search" @keypress="search">
+        <input v-model="query" type="text" placeholder="Artist, songs, or podcasts" @keypress="(e) => search(e)">
 
         <div class="track-list">
             <div v-for="(item, index) of searchResults" :key="index">
                 <TrackItem
                     :track-item="item"
-                    :menu-options="['add-to-playlist']"
-                    @main-click="openItemMenu"
+                    :menu-options="['add-to-playlist', 'add-to-queue']"
                     @play-click="play(item)"
                 />
             </div>
@@ -17,7 +16,6 @@
 
 <script lang="ts">
 import Vue from 'vue'
-// import VueSimpleContextMenu from 'vue-simple-context-menu'
 import { AudioTrack } from '@/types/Audio'
 import TrackItem from '@/components/TrackItem.vue'
 
@@ -25,21 +23,21 @@ export default Vue.extend({
     components: { TrackItem },
     data () {
         return {
-            query: 'Gettomasa',
+            query: '',
             searchResults: [] as AudioTrack[]
         }
     },
     methods: {
-        async search() {
-            const searchResult = await this.$lofity.search(this.query)
-            this.searchResults = searchResult
+        async search(e) {
+            if (e.key !== 'Enter') return
+            this.$lofity.search(this.query).then(searchResult => {
+                this.searchResults = searchResult
+            })
         },
-        async play(item: AudioTrack) {
-            const track = await this.$player.play(item, { volume: this.$store.getters.volume as number })
-            this.$store.commit('player/setTrack', track.info)
-        },
-        openItemMenu(e) {
-            e.element.openMenu()
+        play(item: AudioTrack) {
+            this.$player.play(item, { volume: this.$store.getters.volume as number }).then(track => {
+                this.$store.commit('player/setTrack', track.info)
+            })
         }
     }
 })
@@ -63,14 +61,14 @@ export default Vue.extend({
         line-height: 2em;
 
         padding: 1rem 0.5rem;
+        margin: 0 3vw;
     }
 }
 
 .track-list {
     display: flex;
     flex-direction: column;
-    row-gap: 1rem;
-    margin: 2rem 5vw;
+    margin: 2rem 3vw;
 }
 
 </style>

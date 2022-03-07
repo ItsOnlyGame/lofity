@@ -26,6 +26,7 @@ module.exports = {
         '~/plugins/player.ts',
         '~/plugins/lofity.ts',
         '~/plugins/luxon.ts',
-        '~/plugins/playlist.ts'
+        '~/plugins/playlist.ts',
+        '~/plugins/click-outside.ts'
     ]
 }

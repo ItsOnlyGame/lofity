@@ -7,8 +7,21 @@
         </div>
 
         <div class="playlists">
-            <div v-for="(item, index) of playlists" :key="index">
-                <NuxtLink :to="`/playlist/${item.id}`">{{ item.name }}</NuxtLink>
+            <div v-for="(item, index) of playlists" :key="item.id">
+                <div
+                    class="playlist-button"
+                    @click="$router.push(`/playlist/${item.id}`)"
+                    @contextmenu.prevent="contextMenuVisible.splice(index, 1, true)"
+                >
+                    <p>{{ item.name }}</p>
+                </div>
+
+                <ContextMenu
+                    :visible="contextMenuVisible[index]"
+                    :options="generateContextMenu(item)"
+                    @context-close="contextMenuVisible.splice(index, 1, false)"
+                    @option-click="contextClick"
+                />
             </div>
         </div>
     </div>
@@ -17,12 +30,21 @@
 <script lang="ts">
 import Vue from 'vue'
 import IconButton from '../icon-button.vue'
-
+import { Playlist } from '~/types/Audio'
+import { Option } from '~/types/Client'
+import ContextMenu from '@/components/ContextMenu.vue'
+// contextMenuVisible.splice(index, 1, true)
 export default Vue.extend({
-    components: { IconButton },
+    components: { IconButton, ContextMenu },
     data() {
         return {
-            playlists: this.$playlist.getPlaylists()
+            playlists: this.$playlist.getPlaylists(),
+            contextMenuVisible: [] as Boolean[]
+        }
+    },
+    mounted() {
+        for (let i = 0; i < this.playlists.length; i++) {
+            Vue.set(this.contextMenuVisible, i, false)
         }
     },
     methods: {
@@ -30,6 +52,25 @@ export default Vue.extend({
             const playlist = this.$playlist.newPlaylist()
             this.$router.push(`/playlist/${playlist.id}`)
             this.playlists.push(playlist)
+        },
+        contextClick(item: Option) {
+            const slug = item.slug
+            if (Array.isArray(slug)) return
+            const playlistId = slug.split('/')[1]
+
+            this.$playlist.deletePlaylist(playlistId).finally(() => {
+                for (const playlist of this.playlists) {
+                    if (playlist.id === playlistId) {
+                        this.playlists.splice(this.playlists.indexOf(playlist), 1)
+                        break
+                    }
+                }
+            })
+        },
+        generateContextMenu(item: Playlist): Option[] {
+            return [
+                { name: 'Delete playlist', slug: 'delete-playlist/' + item.id }
+            ]
         }
     }
 })
@@ -46,11 +87,24 @@ export default Vue.extend({
     padding: 1rem 0;
 }
 
-span, a, button, .category-title, .icon-button {
+span, a, button, .icon-button, .playlist-button p {
     color: #838383;
 
     &:hover {
         color: #f2f2f2;
+    }
+}
+
+.playlist-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 4px;
+
+    p {
+        margin: 0;
+        cursor: pointer;
     }
 }
 

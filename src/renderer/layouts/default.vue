@@ -42,7 +42,7 @@ body {
 
 #content {
     grid-area: content;
-    background-color: #121212;
+    background-color: #202020;
     overflow-y: auto;
     padding: 2rem 2rem 1rem 3rem;
 }

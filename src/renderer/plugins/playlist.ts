@@ -3,6 +3,7 @@
 
 import path from 'path'
 import fs from 'fs'
+import * as fsp from 'fs/promises'
 import Vue from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { app } from '@electron/remote'
@@ -83,16 +84,22 @@ export function updatePlaylist(id: string, playlist: Playlist) {
     return playlist
 }
 
+export async function deletePlaylist(id: string): Promise<void> {
+    const playlistPath = path.join(applicationPath, 'playlists', `${id}.json`)
+    await fsp.unlink(playlistPath)
+}
+
 declare module 'vue/types/vue' {
     interface Vue {
         $playlist: {
             newPlaylist(): Playlist,
             getPlaylist(id: string): Playlist | null,
             getPlaylists(): Playlist[],
-            updatePlaylist(id: string, playlist: Playlist): void
+            updatePlaylist(id: string, playlist: Playlist): void,
+            deletePlaylist(id: string): Promise<void>
         }
     }
 }
 Vue.prototype.$playlist = {
-    newPlaylist, getPlaylist, getPlaylists, updatePlaylist
+    newPlaylist, getPlaylist, getPlaylists, updatePlaylist, deletePlaylist
 }

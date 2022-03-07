@@ -1,45 +1,27 @@
 <template>
-    <div class="track-item">
-        <div>
-            <div class="image" @mouseover="imageHover = true" @mouseleave="imageHover = false">
-                <img
-                    v-if="trackItem.thumbnail"
-                    :src="trackItem.thumbnail"
-                    width="180"
-                    :class="imageHover ? 'hover' : ''"
-                >
-                <icon-button
-                    :icon="'gg-play-button-o'" :class="imageHover ? 'hover' : ''"
-                    @click="playClick"
-                />
-            </div>
-            <div class="text" @click="mainClick">
-                <p>{{ trackItem.name }}</p>
-                <p>{{ trackItem.artists.join(', ') }}</p>
-            </div>
+    <div :class="elementClass" @contextmenu.prevent="e => showContextMenu(e)">
+        <div class="image" @mouseover="imageHover = true" @mouseleave="imageHover = false">
+            <img
+                v-if="trackItem.thumbnail"
+                :src="trackItem.thumbnail"
+                width="180"
+                :class="imageHover ? 'hover' : ''"
+            >
+            <icon-button
+                :icon="'gg-play-button-o'" :class="imageHover ? 'hover' : ''"
+                @click="playClick"
+            />
         </div>
-        <div v-if="menu && menuOptions.length != 0">
-            <div class="buttons">
-                <icon-button
-                    v-if="menuOptions.includes('add-to-playlist')"
-                    :icon="'gg-play-list-add'"
-                    :text="'Add to playlist'"
-                    @click="menuClick('add-to-playlist')"
-                />
-                <icon-button
-                    v-if="menuOptions.includes('add-to-queue')"
-                    :icon="'gg-play-list'"
-                    :text="'Add to queue'"
-                />
-            </div>
-            <div class="menu-view">
-                <div v-if="menuView == 'add-to-playlist'" class="add-to-playlist">
-                    <div v-for="(item, index) of playlists" :key="index">
-                        <icon-button :text="item.name" @click="playlistAction(item)" />
-                    </div>
-                </div>
-            </div>
+        <div class="text" @click="mainClick">
+            <p>{{ trackItem.name }}</p>
+            <p>{{ trackItem.artists.join(', ') }}</p>
         </div>
+        <ContextMenu
+            :visible="contextMenuVisible"
+            :options="contextMenu"
+            @context-close="contextMenuVisible = false"
+            @option-click="contextClick"
+        />
     </div>
 </template>
 
@@ -47,9 +29,11 @@
 import Vue, { PropOptions } from 'vue'
 import IconButton from '@/components/icon-button.vue'
 import { AudioTrack, Playlist } from '~/types/Audio'
+import ContextMenu from '@/components/ContextMenu.vue'
+import { Option } from '@/types/Client'
 
 export default Vue.extend({
-    components: { IconButton },
+    components: { IconButton, ContextMenu },
     props: {
         trackItem: {
             type: Object,
@@ -68,37 +52,67 @@ export default Vue.extend({
             imageHover: false,
             menu: false,
             menuView: null as string | null,
-            playlists: this.$playlist.getPlaylists()
+            playlists: this.$playlist.getPlaylists(),
+            contextMenuVisible: false,
+            contextPosition: { x: 0, y: 0 },
+            contextMenu: []
         }
+    },
+    computed: {
+        elementClass() {
+            if (this.contextMenuVisible) {
+                return 'track-item context-visible'
+            }
+            return 'track-item'
+        }
+    },
+    mounted() {
+        const context = [] as Option[]
+        if (this.menuOptions.includes('add-to-queue')) {
+            context.push({ name: 'Add to Queue', slug: 'add-to-queue' })
+        }
+
+        if (this.menuOptions.includes('add-to-playlist')) {
+            const playlistSlug = [] as Option[]
+            for (const playlist of this.$playlist.getPlaylists()) {
+                playlistSlug.push({ name: playlist.name, slug: `add-to-playlist/${playlist.id}` })
+            }
+            context.push({ name: 'Add to Playlist', slug: playlistSlug })
+        }
+        Vue.set(this, 'contextMenu', context)
     },
     methods: {
         mainClick(e) {
-            // Reset menu and the view of it
-            this.menuClick(null)
-
             e.preventDefault()
             this.$emit('main-click', { event: e, element: this })
         },
         playClick(e) {
-            // Reset menu and the view of it
-            this.menu = false
-            this.menuClick(null)
-
             e.preventDefault()
             this.$emit('play-click', { event: e, element: this })
-        },
-        openMenu() {
-            this.menu = !this.menu
-        },
-        menuClick(view: string | null) {
-            this.menuView = view
         },
         playlistAction(playlistItem: Playlist) {
             const playlist = this.$playlist.getPlaylist(playlistItem.id) as Playlist
             playlist.tracks.push(this.trackItem)
             this.$playlist.updatePlaylist(playlistItem.id, playlist)
             this.$toast.success('Added to playlist!').goAway(3000)
-            this.menuClick(null)
+        },
+        showContextMenu(e: PointerEvent) {
+            this.contextMenuVisible = true
+            this.contextPosition.x = e.x
+            this.contextPosition.y = e.y
+        },
+        contextClick(item: Option) {
+            if (Array.isArray(item.slug)) return
+            if (item.slug.includes('add-to-playlist')) {
+                const playlistId = item.slug.split('/')[1]
+                const playlist = this.$playlist.getPlaylist(playlistId)
+                if (playlist == null) {
+                    throw new Error('Trying to add track to playlist that doesn\'t exist')
+                }
+                playlist.tracks.push(this.trackItem)
+                this.$playlist.updatePlaylist(playlistId, playlist)
+                this.$toast.success('Added track to ' + playlist.name).goAway(3000)
+            }
         }
     }
 })
@@ -111,21 +125,20 @@ export default Vue.extend({
 
 .track-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    column-gap: 1rem;
+    align-items: center;
+    padding: 6px 1rem;
 
-    border-radius: 1rem;
+    border-radius: 6px;
 
     &:hover {
         background-color: #2a2a2a;
     }
-}
 
-.track-item > div:first-child {
-    display: flex;
-    flex-direction: row;
-    column-gap: 1rem;
-    align-items: center;
-    padding: 1rem 1rem;
+    &.context-visible {
+        background-color: #5c5c5c;
+    }
 
     &, * {
         cursor: pointer;
@@ -174,34 +187,6 @@ export default Vue.extend({
                 font-size: 0.7em;
             }
         }
-    }
-}
-
-.track-item > div:nth-child(2) {
-    display: grid;
-    grid-template-columns: max-content auto;
-
-    height: auto;
-    max-height: 300px;
-    padding-bottom: 16px;
-    & .buttons {
-        border: none;
-        border-right: 1px solid #4b4b4b;
-    }
-
-    & .menu-view {
-        margin: 0 2rem;
-
-        & .add-to-playlist .icon-button {
-            margin: 0;
-            * {
-                margin: 8px 4px;
-            }
-        }
-    }
-
-    & .icon-button {
-        margin: 0 2rem;
     }
 }
 </style>

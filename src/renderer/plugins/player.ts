@@ -24,10 +24,12 @@ function initYTDLpWrap(): YTDlpWrap {
     return new YTDlpWrap(ytDlpFile)
 }
 
+// Init required values
 const ytDlpWrap = initYTDLpWrap()
-
 let sound: Howl | null = null
 let volume = 0.5
+const sessionHistory: AudioTrack[] = []
+
 // This is to satisfy the typescript engine
 export async function play(trackInfo: AudioTrack, options?: { volume: number }): Promise<TrackData> {
     if (sound != null) {
@@ -66,42 +68,42 @@ async function loadTrack(trackInfo: AudioTrack, options?: { volume: number }) {
         preload: 'metadata'
     })
     sound.play()
+
+    // Set volume on play
     if (options && options.volume) {
         sound.volume(options.volume)
     } else sound.volume(volume)
 
-    // Clear listener after first call.
     sound.on('loaderror', function(error) {
         console.log(error)
     })
 
-    // Clear listener after first call.
     sound.on('playerror', function(error) {
         console.log(error)
     })
 
-    // Clear listener after first call.
-    sound.once('load', function() {
-        console.log('Playing')
-    })
-
-    // Fires when the sound finishes playing.
     sound.on('end', function() {
-        console.log('Finished!')
+        sessionHistory.push(trackInfo)
     })
 }
 
+/**
+ * Function returs howl sound object if it's not null
+ * @returns Howl sound object
+ */
 export function getHowlTrack(): Howl | null {
     return sound
 }
 
+// Sets volume for player
 export function setVolume(vol: number) {
     volume = vol
     if (sound == null) return
     sound.volume(volume)
 }
 
-export function pause() {
+// Pauses player
+export function pause(): void {
     if (sound == null) return
     if (sound.playing()) {
         sound.pause()

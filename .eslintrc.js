@@ -25,6 +25,7 @@ module.exports = {
         'no-template-curly-in-string': 'off',
         'space-before-function-paren': 'off',
         'no-return-assign': 'off',
+        '@typescript-eslint/no-unused-vars': ['off'],
 
         'global-require': 0,
         'import/no-unresolved': 0,
