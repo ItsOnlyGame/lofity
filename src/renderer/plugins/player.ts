@@ -1,12 +1,15 @@
 import path from 'path'
 import fs from 'fs'
+import events from 'events'
 import { Howl } from 'howler'
 import Vue from 'vue'
 import YTDlpWrap from 'yt-dlp-wrap'
 import { app } from '@electron/remote'
+import { addToHistory } from './history'
 import { AudioTrack, TrackData } from '~/types/Audio'
 
 const frequentTracks: { track: AudioTrack, date: null, src: string }[] = []
+const eventEmitter = new events.EventEmitter()
 
 /**
  * Initializes YTDLp Wrapper for node
@@ -20,7 +23,9 @@ function initYTDLpWrap(): YTDlpWrap {
 
     // TODO: Linux and MacOS support require here (exe)
     const ytDlpFile = path.join(appFolder, 'yt-dlp.exe')
-    YTDlpWrap.downloadFromGithub(ytDlpFile)
+    if (!fs.existsSync(ytDlpFile)) {
+        YTDlpWrap.downloadFromGithub(ytDlpFile)
+    }
     return new YTDlpWrap(ytDlpFile)
 }
 
@@ -29,8 +34,15 @@ const ytDlpWrap = initYTDLpWrap()
 let sound: Howl | null = null
 let volume = 0.5
 const sessionHistory: AudioTrack[] = []
+const trackQueue: AudioTrack[] = []
 
-// This is to satisfy the typescript engine
+/**
+ * Play a track.
+ * Ignores the queue but keeps it in the background for when this track ends
+ * @param trackInfo AudioTrack object
+ * @param options Play options, like volume
+ * @returns Returns a TrackData object
+ */
 export async function play(trackInfo: AudioTrack, options?: { volume: number }): Promise<TrackData> {
     if (sound != null) {
         sound.stop()
@@ -44,7 +56,17 @@ export async function play(trackInfo: AudioTrack, options?: { volume: number }):
     }
 }
 
-async function getFileUrl(trackInfo: AudioTrack): Promise<string> {
+// Adds a track to the queue
+export function queue(trackInfo: AudioTrack): void {
+    trackQueue.push(trackInfo)
+}
+
+/**
+ * Fetches the track url using yt-dlp
+ * @param trackInfo The track in question
+ * @returns Track playback url
+ */
+async function getUrl(trackInfo: AudioTrack): Promise<string> {
     const cache = frequentTracks.filter(t => t.track.id === trackInfo.id)
     if (cache.length !== 0) {
         const checkLink = async url => (await fetch(url)).ok
@@ -57,10 +79,17 @@ async function getFileUrl(trackInfo: AudioTrack): Promise<string> {
     return await ytDlpWrap.execPromise(options)
 }
 
+/**
+ * Load track to howler
+ * @param trackInfo Track in question
+ * @param options Play options, like volume
+ */
 async function loadTrack(trackInfo: AudioTrack, options?: { volume: number }) {
-    const url = await getFileUrl(trackInfo)
+    eventEmitter.emit('loadTrack', trackInfo)
+    const url = await getUrl(trackInfo)
 
     frequentTracks.push({ track: trackInfo, date: null, src: url })
+    addToHistory(trackInfo)
 
     sound = new Howl({
         src: [url],
@@ -68,6 +97,7 @@ async function loadTrack(trackInfo: AudioTrack, options?: { volume: number }) {
         preload: 'metadata'
     })
     sound.play()
+    eventEmitter.emit('loadSound', sound)
 
     // Set volume on play
     if (options && options.volume) {
@@ -83,7 +113,11 @@ async function loadTrack(trackInfo: AudioTrack, options?: { volume: number }) {
     })
 
     sound.on('end', function() {
-        sessionHistory.push(trackInfo)
+        if (trackQueue.length !== 0) {
+            const t = trackQueue.shift()
+            if (t === undefined) return
+            loadTrack(t)
+        }
     })
 }
 
@@ -116,13 +150,15 @@ declare module 'vue/types/vue' {
     interface Vue {
         $player: {
             play(trackInfo: AudioTrack, options?: { volume: number }): Promise<TrackData>
-            setVolume(vol: number): void,
             getHowlTrack(): Howl | null,
+            queue(trackInfo: AudioTrack): void,
+            eventEmitter: events.EventEmitter,
+            setVolume(vol: number): void,
             pause(): void
         }
     }
 }
 
 Vue.prototype.$player = {
-    play, setVolume, getHowlTrack, pause
+    play, setVolume, getHowlTrack, pause, queue, eventEmitter
 }

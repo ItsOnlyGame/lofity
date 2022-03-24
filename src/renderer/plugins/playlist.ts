@@ -12,7 +12,7 @@ import { AudioTrack, Playlist } from '~/types/Audio'
 const applicationPath = path.join(app.getPath('appData'), 'lofity')
 if (!fs.existsSync(applicationPath)) fs.mkdirSync(applicationPath)
 
-const playlistCache: Playlist[] = []
+let playlistCache: Playlist[] = []
 
 export function newPlaylist(): Playlist {
     const playlistFolderPath = path.join(applicationPath, 'playlists')
@@ -20,7 +20,9 @@ export function newPlaylist(): Playlist {
     const playlist: Playlist = {
         id: uuidv4(),
         name: `New playlist ${getPlaylists().length + 1}`,
-        tracks: []
+        description: '',
+        tracks: [],
+        updateId: Date.now().toString()
     }
 
     if (!fs.existsSync(playlistFolderPath)) {
@@ -35,7 +37,7 @@ export function newPlaylist(): Playlist {
 
         throw new Error(errorString)
     }
-
+    playlistCache.push(playlist)
     fs.writeFileSync(playlistPath, JSON.stringify(playlist))
     return playlist
 }
@@ -78,15 +80,24 @@ export function getPlaylist(id: string): Playlist | null {
 }
 
 export function updatePlaylist(id: string, playlist: Playlist) {
-    const playlistPath = path.join(applicationPath, 'playlists', `${id}.json`)
+    playlist.updateId = Date.now().toString()
 
+    const playlistPath = path.join(applicationPath, 'playlists', `${id}.json`)
+    for (let i = 0; i < playlistCache.length; i++) {
+        if (playlistCache[i].id === id) {
+            playlistCache.splice(i, 1, playlist)
+            // Vue.set(playlistCache, i, playlist)
+            break
+        }
+    }
     fs.writeFileSync(playlistPath, JSON.stringify(playlist))
     return playlist
 }
 
 export async function deletePlaylist(id: string): Promise<void> {
     const playlistPath = path.join(applicationPath, 'playlists', `${id}.json`)
-    await fsp.unlink(playlistPath)
+    playlistCache = playlistCache.filter(pc => pc.id !== id)
+    return fsp.unlink(playlistPath)
 }
 
 declare module 'vue/types/vue' {

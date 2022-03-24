@@ -1,58 +1,42 @@
 <template>
     <div>
-        <p @contextmenu.prevent="visible = !visible">test</p>
-        <ContextMenu ref="menu" :visible="visible" :options="contextMenu" @context-close="visible = false" />
+        <div class="track-history">
+            <div v-for="(item, index) of history" :key="index">
+                <TrackItem
+                    :track-item="item"
+                    :menu-options="['add-to-playlist', 'add-to-queue']"
+                    @play-click="play(item)"
+                />
+            </div>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
-import ContextMenu from '@/components/ContextMenu.vue'
+import { AudioTrack } from '~/types/Audio'
+import TrackItem from '@/components/TrackItem.vue'
 
 export default Vue.extend({
     name: 'IndexPage',
-    components: { ContextMenu },
+    components: { TrackItem },
     data () {
         return {
-            externalContent: '',
-            visible: false,
-            test: [
-                { name: 'test', slug: 'test_click' },
-                {
-                    name: 'test',
-                    slug: [{ name: 'sub', slug: 'sub' }],
-                    visible: false
-                },
-                { name: 'test', slug: 'test_click' }
-            ],
-            contextMenu: [
-                { name: 'test', slug: 'test_click' },
-                {
-                    name: 'test',
-                    slug: [{ name: 'sub', slug: 'sub' }]
-                },
-                { name: 'test', slug: 'test_click' },
-                { name: 'test', slug: 'test_click' },
-                {
-                    name: 'test',
-                    slug: [
-                        { name: 'sub', slug: 'sub' },
-                        { name: 'sub', slug: 'sub' },
-                        {
-                            name: 'sub',
-                            slug: [
-                                { name: 'sub', slug: 'sub' },
-                                { name: 'sub', slug: 'sub' }
-                            ]
-                        },
-                        { name: 'sub', slug: 'sub' },
-                        { name: 'sub', slug: 'sub' }
-                    ]
-                },
-                { name: 'test', slug: 'test_click' },
-                { name: 'test', slug: 'test_click' }
-            ]
+            history: this.$history.getHistory()
+        }
+    },
+    methods: {
+        play(item: AudioTrack) {
+            this.$player.play(item, { volume: this.$store.getters.volume as number }).then(track => {
+                this.$store.commit('player/setTrack', track.info)
+            })
         }
     }
 })
 </script>
+
+<style scoped>
+#content {
+    padding: 2rem 2rem 1rem 3rem;
+}
+</style>

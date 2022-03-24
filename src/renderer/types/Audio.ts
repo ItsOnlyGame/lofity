@@ -31,5 +31,7 @@ export type TrackData = {
 export type Playlist = {
     id: string,
     name: string,
-    tracks: AudioTrack[]
+    description: string,
+    tracks: AudioTrack[],
+    updateId: string
 }

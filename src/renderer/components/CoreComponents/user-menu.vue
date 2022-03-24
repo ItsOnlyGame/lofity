@@ -1,15 +1,24 @@
 <template>
-    <div id="user-menu">
+    <div id="user-menu" :key="update">
         <div class="buttons">
-            <icon-button :text="'Home'" :icon="'gg-home'" @click="$router.push('/')" />
-            <icon-button :text="'Search'" :icon="'gg-search'" @click="$router.push('/search')" />
-            <icon-button :text="'Create playlist'" :icon="'gg-math-plus'" @click="createPlaylist" />
+            <icon-button :text="'Home'" :icon="'gg-home'" :class="getClass('', '/')" @click="$router.push('/')" />
+            <icon-button
+                :text="'Search'"
+                :icon="'gg-search'"
+                :class="getClass('', '/search')"
+                @click="$router.push('/search')"
+            />
+            <icon-button
+                :text="'Create playlist'"
+                :icon="'gg-math-plus'"
+                @click="createPlaylist"
+            />
         </div>
 
         <div class="playlists">
-            <div v-for="(item, index) of playlists" :key="item.id">
+            <div v-for="(item, index) of playlists" :key="item.updateId">
                 <div
-                    class="playlist-button"
+                    :class="getClass('playlist-button', `/playlist/${item.id}`)"
                     @click="$router.push(`/playlist/${item.id}`)"
                     @contextmenu.prevent="contextMenuVisible.splice(index, 1, true)"
                 >
@@ -30,16 +39,22 @@
 <script lang="ts">
 import Vue from 'vue'
 import IconButton from '../icon-button.vue'
-import { Playlist } from '~/types/Audio'
+import { AudioTrack, Playlist } from '~/types/Audio'
 import { Option } from '~/types/Client'
 import ContextMenu from '@/components/ContextMenu.vue'
-// contextMenuVisible.splice(index, 1, true)
+
 export default Vue.extend({
     components: { IconButton, ContextMenu },
     data() {
         return {
             playlists: this.$playlist.getPlaylists(),
-            contextMenuVisible: [] as Boolean[]
+            contextMenuVisible: [] as Boolean[],
+            update: false
+        }
+    },
+    watch: {
+        $route() {
+            this.update = !this.update
         }
     },
     mounted() {
@@ -51,7 +66,7 @@ export default Vue.extend({
         createPlaylist() {
             const playlist = this.$playlist.newPlaylist()
             this.$router.push(`/playlist/${playlist.id}`)
-            this.playlists.push(playlist)
+            this.playlists = this.$playlist.getPlaylists()
         },
         contextClick(item: Option) {
             const slug = item.slug
@@ -71,6 +86,12 @@ export default Vue.extend({
             return [
                 { name: 'Delete playlist', slug: 'delete-playlist/' + item.id }
             ]
+        },
+        getClass(og: string, url: string) {
+            if (url === this.$router.currentRoute.path) {
+                return og + ' active'
+            }
+            return og
         }
     }
 })
@@ -93,6 +114,14 @@ span, a, button, .icon-button, .playlist-button p {
     &:hover {
         color: #f2f2f2;
     }
+
+    &.active {
+        color: #f2f2f2;
+    }
+}
+
+div.active p {
+    color: #f2f2f2;
 }
 
 .playlist-button {
@@ -109,7 +138,7 @@ span, a, button, .icon-button, .playlist-button p {
 }
 
 .buttons {
-    border-bottom: 1px solid #282828;
+    border-bottom: 1.5px solid #282828;
     margin: 0 8px;
     padding-bottom: 6px;
 
@@ -124,7 +153,7 @@ span, a, button, .icon-button, .playlist-button p {
     display: flex;
     flex-direction: column;
 
-    align-items: stretch;
+    align-items: center;
     cursor: default;
 
     & div a {

@@ -50,51 +50,58 @@ export default Vue.extend({
             durationValue: 0,
             volumeValue: this.$store.getters['player/volume'] as number,
             mouseDown: false,
-            pause: true
+            pause: true,
+            trackInfo: null as AudioTrack | null,
+            howlerSound: null as Howl | null
         }
     },
     computed: {
         thumbnail() {
-            const track = this.$store.getters['player/currentTrack'] as AudioTrack
-            if (track == null) return require('@/assets/none.jpg')
-            return track.thumbnail
+            if (this.trackInfo == null) return require('@/assets/none.jpg')
+            return this.trackInfo.thumbnail
         },
         title() {
-            const track = this.$store.getters['player/currentTrack'] as AudioTrack
-            if (track == null) return ''
-            return track.name
+            if (this.trackInfo == null) return ''
+            return this.trackInfo.name
         },
         artists() {
-            const track = this.$store.getters['player/currentTrack'] as AudioTrack
-            if (track == null) return ''
-            return track.artists.join(', ')
+            if (this.trackInfo == null) return ''
+            return this.trackInfo.artists.join(', ')
         }
     },
     mounted() {
+        this.$player.eventEmitter.on('loadTrack', (trackInfo: AudioTrack) => {
+            this.trackInfo = trackInfo
+        })
+
+        this.$player.eventEmitter.on('loadSound', (howlerSound: Howl) => {
+            this.howlerSound = howlerSound
+        })
+
         window.addEventListener('mousedown', () => this.mouseDown = true, false)
         window.addEventListener('mouseup', () => this.mouseDown = false, false)
 
         const _this = this
         setInterval(() => {
             if (_this.mouseDown) return
-            const track = _this.$player.getHowlTrack()
-            if (track == null) {
+            if (_this.howlerSound == null) {
                 _this.seek = '0:00'
                 _this.duration = '0:00'
                 return
             }
-            _this.seek = DateTime.fromSeconds(Math.round((track as Howl).seek())).toFormat("m':'ss")
-            _this.duration = DateTime.fromSeconds(Math.round((track as Howl).duration())).toFormat("m':'ss")
-            _this.seekValue = Math.round((track as Howl).seek())
-            _this.durationValue = Math.round((track as Howl).duration())
+
+            // Calculate seek position every 300ms
+            _this.seek = DateTime.fromSeconds(Math.round(_this.howlerSound.seek())).toFormat("m':'ss")
+            _this.seekValue = Math.round(_this.howlerSound.seek())
+            _this.duration = DateTime.fromSeconds(Math.round((_this.howlerSound).duration())).toFormat("m':'ss")
+            _this.durationValue = Math.round((_this.howlerSound).duration())
         }, 300)
     },
     methods: {
         setSeek(value: number) {
             this.seekValue = value
-            const track = this.$player.getHowlTrack()
-            if (track == null) return
-            track.seek(value)
+            if (this.howlerSound == null) return
+            this.howlerSound.seek(value)
         },
         preSeek(value: number) {
             this.seek = DateTime.fromSeconds(value).toFormat("m':'ss")

@@ -17,6 +17,7 @@
                 :visible="item.visible"
                 class="subcategory"
                 :options="item.slug"
+                :submenu="true"
                 @option-click="i => optionClick(i)"
             />
         </div>
@@ -51,6 +52,11 @@ export default Vue.extend({
             type: Boolean,
             required: false,
             default: true
+        } as PropOptions<Boolean>,
+        submenu: {
+            type: Boolean,
+            required: false,
+            default: false
         } as PropOptions<Boolean>
     },
     data() {
@@ -70,15 +76,17 @@ export default Vue.extend({
             // ----------------------- //
 
             if (this.$el === undefined) return
-            let top = '0px'
+            let top = 'auto'
             let left = '0px'
             // This could be better
             // Take in account if the element would go out of
             // bounds rather than calculating from the half point
-            if (this.mouseYPos > window.innerHeight / 2) {
-                top = this.mouseYPos - this.$el.clientHeight + 'px'
-            } else {
-                top = this.mouseYPos + 'px'
+            if (!this.submenu) {
+                if (this.mouseYPos > window.innerHeight / 2) {
+                    top = this.mouseYPos - this.$el.clientHeight + 'px'
+                } else {
+                    top = this.mouseYPos + 'px'
+                }
             }
 
             if (this.mouseXPos > window.innerWidth / 2) {
@@ -130,6 +138,7 @@ export default Vue.extend({
     padding: 6px;
     border-radius: 4px;
     box-shadow: 0px 0px 25px 0px rgba(0,0,0,0.5);
+
     & p {
         margin: 0;
         padding: 8px;
@@ -142,7 +151,7 @@ export default Vue.extend({
     }
 
     &.subcategory {
-        transform: translateX(calc(100% + 4px));
+        transform: translateX(calc(100% + 4px)) translateY(-37px);
     }
 }
 

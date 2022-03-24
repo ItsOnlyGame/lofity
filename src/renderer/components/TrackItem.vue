@@ -79,6 +79,11 @@ export default Vue.extend({
             }
             context.push({ name: 'Add to Playlist', slug: playlistSlug })
         }
+
+        if (this.menuOptions.includes('remove-from-playlist')) {
+            context.push({ name: 'Remove from playlist', slug: 'remove-from-playlist' })
+        }
+
         Vue.set(this, 'contextMenu', context)
     },
     methods: {
@@ -112,6 +117,9 @@ export default Vue.extend({
                 playlist.tracks.push(this.trackItem)
                 this.$playlist.updatePlaylist(playlistId, playlist)
                 this.$toast.success('Added track to ' + playlist.name).goAway(3000)
+            } else if (item.slug.includes('add-to-queue')) {
+                this.$player.queue(this.trackItem)
+                this.$toast.info(`Added ${this.trackItem.name} to queue`).goAway(3000)
             }
         }
     }

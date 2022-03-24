@@ -23,10 +23,13 @@ module.exports = {
         '../../node_modules/rfs/scss.scss',
         '~/assets/fonts.scss',
         '~/assets/buttons.scss',
+
+        '~/plugins/appInit.ts',
         '~/plugins/player.ts',
         '~/plugins/lofity.ts',
         '~/plugins/luxon.ts',
         '~/plugins/playlist.ts',
+
         '~/plugins/click-outside.ts'
     ]
 }
