@@ -20,6 +20,7 @@ export type AudioTrack = {
     artists: string[],
     url: string
     thumbnail: string | null,
+    duration: string,
     formatPromise: null | Promise<YtDlpFormat>
 }
 
@@ -32,6 +33,7 @@ export type Playlist = {
     id: string,
     name: string,
     description: string,
+    thumbnail: string,
     tracks: AudioTrack[],
     updateId: string
 }

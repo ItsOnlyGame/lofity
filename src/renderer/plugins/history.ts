@@ -22,7 +22,10 @@ function loadHistory() {
  * @param trackItem Track to add
  */
 export function addToHistory(trackItem: AudioTrack) {
-    playHistory.push(trackItem)
+    const foundTracks = playHistory.filter(t => t.id === trackItem.id)
+    if (foundTracks.length !== 0) return
+
+    playHistory.unshift(trackItem)
 
     const appFolder = path.join(app.getPath('appData'), 'lofity')
     const historyPath = path.join(appFolder, 'history.json')

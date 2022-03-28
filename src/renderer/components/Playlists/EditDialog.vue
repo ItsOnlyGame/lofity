@@ -6,7 +6,15 @@
                 <icon-button :icon="'gg-close'" @click="close" />
             </div>
             <div class="form">
-                <img :src="require('@/assets/none.jpg')" width="256" height="256">
+                <div class="thumbnail" @mouseover="showIcon = true" @mouseleave="showIcon = false" @click="changeThumbnail">
+                    <img
+                        :src="imageSrc == '' ? require('@/assets/none.jpg') : imageSrc"
+                        width="256"
+                        height="256"
+                        :class="showIcon ? 'dim' : ''"
+                    >
+                    <i v-show="showIcon" class="gg-image" />
+                </div>
                 <div class="text-inputs">
                     <input v-model="name" type="text" placeholder="Name your playlist">
                     <input v-model="description" type="text" placeholder="Add a description">
@@ -19,6 +27,7 @@
 
 <script lang="ts">
 import Vue, { PropOptions } from 'vue'
+import { dialog } from '@electron/remote'
 import IconButton from '@/components/icon-button.vue'
 
 export default Vue.extend({
@@ -36,12 +45,18 @@ export default Vue.extend({
         playlistDescription: {
             type: String,
             required: true
+        } as PropOptions<string>,
+        playlistImage: {
+            type: String,
+            required: true
         } as PropOptions<string>
     },
     data() {
         return {
             name: this.playlistName,
-            description: this.playlistDescription
+            description: this.playlistDescription,
+            imageSrc: this.playlistImage,
+            showIcon: false
         }
     },
     methods: {
@@ -49,7 +64,11 @@ export default Vue.extend({
             this.$emit('dialog-close')
         },
         save() {
-            this.$emit('dialog-save', { name: this.name, description: this.description })
+            this.$emit('dialog-save', { name: this.name, description: this.description, thumbnail: this.imageSrc })
+        },
+        async changeThumbnail() {
+            const result = await dialog.showOpenDialog({ properties: ['openFile'] })
+            this.imageSrc = result.filePaths[0]
         }
     }
 })
@@ -57,6 +76,12 @@ export default Vue.extend({
 
 <style lang="scss">
 @import url('https://css.gg/close.css');
+@import url('https://css.gg/image.css');
+
+.gg-image {
+    --ggs: 2;
+    color: rgb(220, 220, 220);
+}
 
 .playlist-edit-dialog {
     position: fixed;
@@ -84,6 +109,23 @@ export default Vue.extend({
     & .form {
         display: flex;
         flex-direction: row;
+    }
+
+    & .form .thumbnail {
+        display: grid;
+        grid: 1fr / 1fr;
+        justify-items: center;
+        align-items: center;
+
+        cursor: pointer;
+
+        & img.dim {
+            filter: brightness(50%);
+        }
+
+        & > * {
+            grid-area: 1 / 1;
+        }
     }
 
     & .dialog-header {

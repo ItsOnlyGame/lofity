@@ -9,6 +9,8 @@ export async function search(query: string): Promise<AudioTrack[]> {
 
     const searchResults = await ytsr(filter1.url as string, { limit: 20 })
 
+    console.log(searchResults.items[0] as Video)
+
     const searchItems: AudioTrack[] = []
     for (const item of searchResults.items as Video[]) {
         searchItems.push({
@@ -17,6 +19,7 @@ export async function search(query: string): Promise<AudioTrack[]> {
             artists: [item.author?.name as string],
             thumbnail: item.bestThumbnail.url,
             url: item.url,
+            duration: item.duration === null ? '' : item.duration,
             formatPromise: null
         })
     }

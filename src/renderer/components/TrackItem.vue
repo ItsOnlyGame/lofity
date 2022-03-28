@@ -45,7 +45,14 @@ export default Vue.extend({
             default() {
                 return []
             }
-        } as PropOptions<string[]>
+        } as PropOptions<string[]>,
+        itemStyle: {
+            type: String,
+            required: false,
+            default() {
+                return 'column'
+            }
+        } as PropOptions<'column' | 'card'>
     },
     data() {
         return {
@@ -61,9 +68,9 @@ export default Vue.extend({
     computed: {
         elementClass() {
             if (this.contextMenuVisible) {
-                return 'track-item context-visible'
+                return 'track-item context-visible ' + this.itemStyle
             }
-            return 'track-item'
+            return 'track-item ' + this.itemStyle
         }
     },
     mounted() {
@@ -118,7 +125,7 @@ export default Vue.extend({
                 this.$playlist.updatePlaylist(playlistId, playlist)
                 this.$toast.success('Added track to ' + playlist.name).goAway(3000)
             } else if (item.slug.includes('add-to-queue')) {
-                this.$player.queue(this.trackItem)
+                this.$player.addToQueue(this.trackItem)
                 this.$toast.info(`Added ${this.trackItem.name} to queue`).goAway(3000)
             }
         }
@@ -131,7 +138,7 @@ export default Vue.extend({
 @import url('https://css.gg/play-list-add.css');
 @import url('https://css.gg/play-list.css');
 
-.track-item {
+.track-item.column {
     display: flex;
     flex-direction: row;
     column-gap: 1rem;
@@ -197,4 +204,86 @@ export default Vue.extend({
         }
     }
 }
+
+.track-item.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 8px;
+
+    padding: 1.2rem 10px;
+    border-radius: 8px;
+    max-width: 200px;
+    height: calc(100% - 2rem);
+
+    background-color: #181818;
+
+    &:hover {
+        background-color: #2a2a2a;
+    }
+
+    &.context-visible {
+        background-color: #5c5c5c;
+    }
+
+    &, * {
+        cursor: pointer;
+    }
+
+    & img {
+        width: 200px;
+        height: auto;
+    }
+
+    & .image {
+        display: grid;
+        grid-template: 1fr / 1fr;
+        justify-items: center;
+
+        & img {
+            grid-area: 1 / 1;
+        }
+
+        & img.hover {
+            filter: brightness(20%);
+        }
+
+        & .icon-button {
+            display: none;
+            grid-area: 1 / 1;
+        }
+
+        & .icon-button.hover {
+            display: inherit;
+        }
+
+    }
+
+    & .text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        row-gap: 8px;
+
+        & p {
+            display: block;
+            margin: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 200px;
+
+            &:first-child {
+                font-size: 0.85em;
+            }
+
+            &:last-child {
+                color: rgb(120, 120, 120);
+                font-size: 0.7em;
+            }
+
+        }
+    }
+}
+
 </style>

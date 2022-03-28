@@ -43,9 +43,8 @@ export default Vue.extend({
             })
         },
         play(item: AudioTrack) {
-            this.$player.play(item, { volume: this.$store.getters.volume as number }).then(track => {
-                this.$store.commit('player/setTrack', track.info)
-            })
+            const track = this.$player.play(item)
+            this.$store.commit('player/setTrack', track.info)
         }
     }
 })

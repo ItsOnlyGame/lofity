@@ -27,7 +27,6 @@ module.exports = {
         '~/plugins/appInit.ts',
         '~/plugins/player.ts',
         '~/plugins/lofity.ts',
-        '~/plugins/luxon.ts',
         '~/plugins/playlist.ts',
 
         '~/plugins/click-outside.ts'

@@ -25,7 +25,7 @@
         </div>
 
         <div class="track-other">
-            <icon-button :icon="'gg-format-justify'" />
+            <icon-button :icon="'gg-format-justify'" @click="$router.push('/queue')" />
             <icon-button :icon="'gg-volume'" />
             <SeekProgress :value="volumeValue" :max="1" @update="setVolume" />
         </div>
@@ -56,25 +56,28 @@ export default Vue.extend({
         }
     },
     computed: {
-        thumbnail() {
+        thumbnail(): string {
             if (this.trackInfo == null) return require('@/assets/none.jpg')
+            if (this.trackInfo.thumbnail == null) return require('@/assets/none.jpg')
             return this.trackInfo.thumbnail
         },
-        title() {
+        title(): string {
             if (this.trackInfo == null) return ''
             return this.trackInfo.name
         },
-        artists() {
+        artists(): string {
             if (this.trackInfo == null) return ''
             return this.trackInfo.artists.join(', ')
         }
     },
     mounted() {
-        this.$player.eventEmitter.on('loadTrack', (trackInfo: AudioTrack) => {
+        this.$player.setVolume(this.volumeValue)
+
+        this.$player.eventListener.on('loadTrack', (trackInfo: AudioTrack) => {
             this.trackInfo = trackInfo
         })
 
-        this.$player.eventEmitter.on('loadSound', (howlerSound: Howl) => {
+        this.$player.eventListener.on('loadSound', (howlerSound: Howl) => {
             this.howlerSound = howlerSound
         })
 

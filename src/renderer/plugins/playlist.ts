@@ -21,6 +21,7 @@ export function newPlaylist(): Playlist {
         id: uuidv4(),
         name: `New playlist ${getPlaylists().length + 1}`,
         description: '',
+        thumbnail: '',
         tracks: [],
         updateId: Date.now().toString()
     }
@@ -86,7 +87,6 @@ export function updatePlaylist(id: string, playlist: Playlist) {
     for (let i = 0; i < playlistCache.length; i++) {
         if (playlistCache[i].id === id) {
             playlistCache.splice(i, 1, playlist)
-            // Vue.set(playlistCache, i, playlist)
             break
         }
     }

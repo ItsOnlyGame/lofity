@@ -14,7 +14,7 @@ module.exports = {
     rules: {
         // StandardJS — The Rules
         indent: ['error', 4],
-        'max-len': ['error', { code: 120 }],
+        'max-len': ['error', { code: 140 }],
         'no-console': 'off',
         'arrow-parens': ['error', 'as-needed'],
         curly: ['error', 'multi-line'],
