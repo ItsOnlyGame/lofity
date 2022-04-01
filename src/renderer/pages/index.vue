@@ -33,7 +33,7 @@ export default Vue.extend({
     layout: 'default',
     data () {
         return {
-            history: this.$history.getHistory()
+            history: this.$history.getPlaybackHistory()
         }
     },
     beforeMount() {

@@ -103,7 +103,6 @@ export class Queue {
             }
         }
 
-        console.log(this.queue.tracks.concat(split1).concat(split2))
         return this.queue.tracks.concat(split1).concat(split2)
     }
 

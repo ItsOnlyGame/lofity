@@ -2,11 +2,13 @@
     <div>
         <input v-model="query" type="text" placeholder="Artist, songs, or podcasts" @keypress="(e) => search(e)">
 
-        <div v-if="loading" class="loader-div">
-            <div v-if="loading" class="loader" />
+        <div v-if="searchResults.length === 0" class="search-history">
+            <div v-for="(item, index) of searchHistory" :key="index" @click="() => { query = item; search() }">
+                <p>{{ item }}</p>
+            </div>
         </div>
 
-        <div class="track-list">
+        <div v-if="searchResults.length !== 0" class="track-list">
             <div v-for="(item, index) of searchResults" :key="index">
                 <TrackItem
                     :track-item="item"
@@ -14,6 +16,10 @@
                     @play-click="play(item)"
                 />
             </div>
+        </div>
+
+        <div v-if="loading" class="loader-div">
+            <div v-if="loading" class="loader" />
         </div>
     </div>
 </template>
@@ -29,15 +35,27 @@ export default Vue.extend({
         return {
             query: '',
             searchResults: [] as AudioTrack[],
-            loading: false
+            loading: false,
+            searchHistory: this.$history.getSearchHistory()
         }
     },
+    deactivated() {
+        this.query = ''
+        this.searchResults = []
+    },
     methods: {
-        async search(e) {
-            if (e.key !== 'Enter') return
+        async search(e?: KeyboardEvent) {
+            if (e) {
+                if (e.key !== 'Enter') return
+            }
+            if (this.query === '') return
+            this.$history.addToSearchHistory(this.query)
             this.searchResults.splice(0, this.searchResults.length)
             this.loading = true
             this.$lofity.search(this.query).then(searchResult => {
+                if (this.searchResults.length === 0) {
+                    this.$toast.error('Something went wront whilst searching for tracks! Try again.').goAway(3000)
+                }
                 this.searchResults = searchResult
                 this.loading = false
             })
@@ -78,6 +96,28 @@ export default Vue.extend({
     display: flex;
     flex-direction: column;
     margin: 2rem 3vw;
+}
+
+.search-history {
+    display: flex;
+    margin: 1rem 0;
+    column-gap: 1rem;
+    padding-bottom: 6px;
+    overflow-x: auto;
+
+    & > div {
+        background-color: rgba(40, 40, 40, 0.8);
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        white-space: nowrap;
+
+        &:hover {
+            background-color: rgba(40, 40, 40, 1);
+        }
+
+        & > p { margin: 0; padding: 0; }
+        &, * { cursor: pointer; }
+    }
 }
 
 .loader-div {

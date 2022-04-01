@@ -5,7 +5,7 @@ import { Howl } from 'howler'
 import Vue from 'vue'
 import YTDlpWrap from 'yt-dlp-wrap'
 import { app } from '@electron/remote'
-import { addToHistory } from './history'
+import { addToPlaybackHistory } from './history'
 import { Queue, RepeatMode } from './queue'
 import { AudioTrack, Playlist, TrackData } from '~/types/Audio'
 
@@ -17,6 +17,7 @@ class Player {
     private howl = null as Howl | null
     private queueManager = new Queue()
     public eventListener = new events.EventEmitter()
+    private loadPromise = null as Promise<void> | null
 
     constructor() {
         const file = path.join(app.getPath('appData'), 'lofity', 'yt-dlp.exe')
@@ -49,14 +50,20 @@ class Player {
      */
     play(track: AudioTrack): TrackData {
         if (this.howl != null) {
+            this.howl.stop()
             this.queueManager.clear('playlist')
             this.queueManager.skip()
-            this.howl.stop()
         }
 
-        console.log(this.queueManager.getQueue())
+        if (this.loadPromise) {
+            this.loadPromise.then(() => {
+                if (this.howl != null) {
+                    this.howl.stop()
+                }
+            })
+        }
+        this.loadPromise = this.loadTrack(track)
 
-        this.loadTrack(track)
         this.queueManager.addToQueue(track)
 
         return {
@@ -67,8 +74,8 @@ class Player {
 
     playPlaylist(playlist: Playlist, firstTrack: number): TrackData {
         if (this.howl != null) {
-            this.queueManager.clear('playlist')
             this.howl.stop()
+            this.queueManager.clear('playlist')
         }
 
         this.queueManager.addPlaylistToQueue(playlist, firstTrack)
@@ -92,7 +99,7 @@ class Player {
         this.eventListener.emit('loadTrack', trackInfo)
         const url = await this.getUrl(trackInfo)
         frequentTracks.push({ track: trackInfo, date: null, src: url })
-        addToHistory(trackInfo)
+        addToPlaybackHistory(trackInfo)
 
         this.howl = new Howl({
             src: [url],
@@ -115,6 +122,7 @@ class Player {
 
         this.howl.on('end', function() {
             const nextTrack = _this.queueManager.nextTrack()
+            console.log(nextTrack)
             if (nextTrack === null) return
             _this.loadTrack(nextTrack)
         })
@@ -148,8 +156,8 @@ class Player {
         return this.howl
     }
 
-    getCurrentTrack(): AudioTrack {
-        return this.queueManager.getQueue()[0]
+    getCurrentTrack(): AudioTrack | null {
+        return this.queueManager.getQueue()[0] || null
     }
 
     /**

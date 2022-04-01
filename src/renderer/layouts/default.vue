@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <user-menu id="user-menu" />
-        <nuxt id="content" />
+        <nuxt id="content" keep-alive />
         <playback-bar id="playback-bar" />
     </div>
 </template>

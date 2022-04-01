@@ -21,6 +21,7 @@ export type AudioTrack = {
     url: string
     thumbnail: string | null,
     duration: string,
+    lyrics: string | null,
     formatPromise: null | Promise<YtDlpFormat>
 }
 

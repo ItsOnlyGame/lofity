@@ -47,7 +47,6 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "@dr.pogodin/audio-loader": "^1.0.3",
     "@electron/remote": "^2.0.5",
     "@nuxt/types": "^2.15.8",
     "@nuxt/typescript-runtime": "^2.1.0",
@@ -56,6 +55,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "howler": "^2.2.3",
     "luxon": "^2.3.1",
+    "lyrics-finder": "^21.7.0",
     "rfs": "^9.0.6",
     "uuid": "^8.3.2",
     "v-click-outside": "^3.1.2",

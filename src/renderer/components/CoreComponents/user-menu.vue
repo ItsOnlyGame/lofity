@@ -9,6 +9,13 @@
                 @click="$router.push('/search')"
             />
             <icon-button
+                :text="'Lyrics'"
+                :icon="'gg-mic'"
+                :class="getClass('', '/lyrics')"
+                @click="$router.push('/lyrics')"
+            />
+            <br>
+            <icon-button
                 :text="'Create playlist'"
                 :icon="'gg-math-plus'"
                 @click="createPlaylist"
@@ -101,6 +108,11 @@ export default Vue.extend({
 @import url('https://css.gg/math-plus.css');
 @import url('https://css.gg/home.css');
 @import url('https://css.gg/search.css');
+@import url('https://css.gg/mic.css');
+
+.gg-mic {
+    --ggs: 0.95;
+}
 
 #user-menu {
     display: flex;
