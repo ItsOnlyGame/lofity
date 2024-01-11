@@ -52,7 +52,7 @@ class Player {
         if (this.howl != null) {
             this.howl.stop()
             this.queueManager.clear('playlist')
-            this.queueManager.skip()
+            // this.queueManager.nextTrack()
         }
 
         if (this.loadPromise) {
@@ -88,7 +88,38 @@ class Player {
     }
 
     addToQueue(trackInfo: AudioTrack): void {
-        this.queueManager.addToQueue(trackInfo)
+        if (this.queueManager.getQueue().length === 0) {
+            this.play(trackInfo)
+        } else {
+            this.queueManager.addToQueue(trackInfo)
+        }
+    }
+
+    playPrevious() {
+        const track = this.queueManager.previous()
+        if (track !== null) {
+            this.play(track)
+        } else if (this.howl !== null) {
+            this.howl.seek(0)
+        }
+    }
+
+    playSkip() {
+        const track = this.queueManager.nextTrack()
+        console.log(track)
+        if (track !== null) {
+            this.loadTrack(track)
+        }
+
+        if (this.howl === null && this.loadPromise != null) {
+            this.loadPromise.then(() => {
+                if (this.howl != null) {
+                    this.howl.stop()
+                }
+            })
+        } else if (this.howl != null) {
+            this.howl.stop()
+        }
     }
 
     /**
@@ -97,7 +128,12 @@ class Player {
      */
     private async loadTrack(trackInfo: AudioTrack): Promise<void> {
         this.eventListener.emit('loadTrack', trackInfo)
+
+        const startTime = performance.now()
         const url = await this.getUrl(trackInfo)
+        const endTime = performance.now()
+        console.log(`Time taken was ${endTime - startTime} ms`)
+
         frequentTracks.push({ track: trackInfo, date: null, src: url })
         addToPlaybackHistory(trackInfo)
 
@@ -122,7 +158,6 @@ class Player {
 
         this.howl.on('end', function() {
             const nextTrack = _this.queueManager.nextTrack()
-            console.log(nextTrack)
             if (nextTrack === null) return
             _this.loadTrack(nextTrack)
         })
@@ -166,7 +201,8 @@ class Player {
      * @returns Track playback url
      */
     private async getUrl(trackInfo: AudioTrack): Promise<string> {
-        const cache = frequentTracks.filter(t => t.track.id === trackInfo.id)
+        // const cache = frequentTracks.filter(t => t.track.id === trackInfo.id)
+        /*
         if (cache.length !== 0) {
             const checkLink = async url => (await fetch(url)).ok
             if (await checkLink(cache[0].src)) {
@@ -174,6 +210,7 @@ class Player {
             }
             frequentTracks.splice(frequentTracks.indexOf(cache[0]), 1)
         }
+        */
         const options = ['-f', 'bestaudio', '--get-url', trackInfo.url]
         return await this.ytdlp.execPromise(options)
     }
