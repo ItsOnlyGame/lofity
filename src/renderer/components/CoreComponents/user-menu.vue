@@ -105,10 +105,10 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import url('https://css.gg/math-plus.css');
-@import url('https://css.gg/home.css');
-@import url('https://css.gg/search.css');
-@import url('https://css.gg/mic.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/math-plus.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/home.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/search.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/mic.css');
 
 .gg-mic {
     --ggs: 0.95;

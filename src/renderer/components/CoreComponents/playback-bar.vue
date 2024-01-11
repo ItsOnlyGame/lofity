@@ -10,12 +10,17 @@
 
         <div class="track-state">
             <div class="actions">
-                <icon-button :icon="'gg-sync'" />
-                <icon-button :icon="'gg-play-backwards'" />
+                <icon-button :icon="'gg-arrows-exchange'" :class="suffle ? 'highlight' : ''" @click="toggleSuffle" />
+                <icon-button :icon="'gg-play-backwards'" @click="playPrevious" />
                 <icon-button v-if="pause" :icon="'gg-play-pause-o'" @click="playpause" />
                 <icon-button v-else :icon="'gg-play-button-o'" @click="playpause" />
-                <icon-button :icon="'gg-play-forwards'" />
-                <icon-button :icon="'gg-repeat'" />
+                <icon-button :icon="'gg-play-forwards'" @click="playNext" />
+                <icon-button
+                    :icon="'gg-repeat'"
+                    :class="repeatMode !== RepeatMode.None ? 'highlight' : ''"
+                    :text="repeatMode === RepeatMode.Track ? '1' : ''"
+                    @click="switchRepeatMode"
+                />
             </div>
             <div class="seek-bar">
                 <p>{{ seek }}</p>
@@ -39,11 +44,13 @@ import { DateTime } from 'luxon'
 import IconButton from '@/components/icon-button.vue'
 import SeekProgress from '@/components/SeekProgress.vue'
 import { AudioTrack } from '~/types/Audio'
+import { RepeatMode } from '~/plugins/queue'
 
 export default Vue.extend({
     components: { IconButton, SeekProgress },
     data() {
         return {
+            RepeatMode,
             seek: '0:00',
             duration: '0:00',
             seekValue: 0,
@@ -52,7 +59,9 @@ export default Vue.extend({
             mouseDown: false,
             pause: true,
             trackInfo: null as AudioTrack | null,
-            howlerSound: null as Howl | null
+            howlerSound: null as Howl | null,
+            repeatMode: RepeatMode.None,
+            suffle: false
         }
     },
     computed: {
@@ -116,20 +125,39 @@ export default Vue.extend({
         playpause() {
             this.$player.pause()
             this.pause = !this.pause
+        },
+        playPrevious() {
+            this.$player.playPrevious()
+        },
+        playNext() {
+            this.$player.playSkip()
+        },
+        switchRepeatMode() {
+            if (this.repeatMode === RepeatMode.None) {
+                this.repeatMode = RepeatMode.Queue
+            } else if (this.repeatMode === RepeatMode.Queue) {
+                this.repeatMode = RepeatMode.Track
+            } else if (this.repeatMode === RepeatMode.Track) {
+                this.repeatMode = RepeatMode.None
+            }
+            this.$player.setRepeatMode(this.repeatMode)
+        },
+        toggleSuffle() {
+            this.suffle = !this.suffle
         }
     }
 })
 </script>
 
 <style lang="scss">
-@import url('https://css.gg/play-pause-o.css');
-@import url('https://css.gg/play-button-o.css');
-@import url('https://css.gg/play-backwards.css');
-@import url('https://css.gg/play-forwards.css');
-@import url('https://css.gg/sync.css');
-@import url('https://css.gg/repeat.css');
-@import url('https://css.gg/volume.css');
-@import url('https://css.gg/format-justify.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-pause-o.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-button-o.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-backwards.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-forwards.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/arrows-exchange.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/repeat.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/volume.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/format-justify.css');
 
 .playback-bar {
     display: grid;
@@ -207,6 +235,18 @@ export default Vue.extend({
 
         & > :nth-child(1), & > :nth-child(5) {
             --ggs: 1.2;
+        }
+
+        & > div:nth-child(5) {
+            & > p { padding: 0; margin: 0; text-align: center; font-size: 12px; }
+        }
+
+        & > div.highlight > * {
+            color: rgb(50, 100, 180);
+        }
+
+        & > div.highlight:hover > * {
+            color: rgb(80, 118, 214);
         }
     }
 

@@ -20,10 +20,15 @@ body {
     margin: 0 !important;
 }
 
-#content.init {
+#app {
+    display: grid;
     width: 100%;
     height: 100%;
     background-color: #121212;
+}
+
+#content.init {
+    grid-area: 1 / 1 / span 2 / span 2;
 }
 
 .toasted {

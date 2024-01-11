@@ -75,8 +75,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import url('https://css.gg/close.css');
-@import url('https://css.gg/image.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/close.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/image.css');
 
 .gg-image {
     --ggs: 2;

@@ -134,9 +134,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import url('https://css.gg/play-button-o.css');
-@import url('https://css.gg/play-list-add.css');
-@import url('https://css.gg/play-list.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-button-o.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-list-add.css');
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/play-list.css');
 
 .track-item.column {
     display: flex;

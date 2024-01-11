@@ -1,7 +1,7 @@
 <template>
     <div>
         <h1 class="title">Queue</h1>
-        <div v-if="currentTrack !== undefined" class="track-list">
+        <div v-if="currentTrack !== null" class="track-list">
             <h4>Currently playing</h4>
             <TrackItem
                 :track-item="currentTrack"
