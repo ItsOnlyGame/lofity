@@ -22,30 +22,13 @@ export class Queue {
     repeat = RepeatMode.None
 
     addToQueue(audioTrack: AudioTrack): void {
+        console.log(audioTrack.name)
         this.queue.tracks.push(audioTrack)
     }
 
     addPlaylistToQueue(playlist: Playlist, firstTrack: number): void {
         this.playlistQueue.playlist = playlist
         this.playlistQueue.trackIndex = firstTrack
-    }
-
-    skip() {
-        if (this.queue.tracks.length !== 0) {
-            this.queue.tracks.shift()
-            return this.queue[this.queue.trackIndex]
-        }
-
-        if (this.playlistQueue.playlist !== null) {
-            this.playlistQueue.trackIndex += 1
-            if (this.playlistQueue.trackIndex >= this.playlistQueue.playlist.tracks.length) {
-                this.playlistQueue.trackIndex = 0
-            }
-
-            return this.playlistQueue.playlist.tracks[this.playlistQueue.trackIndex]
-        }
-
-        return null
     }
 
     previous() {
@@ -73,7 +56,7 @@ export class Queue {
                     this.queue.trackIndex = 0
                 }
             }
-            return this.queue[this.queue.trackIndex]
+            return this.queue.tracks[this.queue.trackIndex] ?? null
         }
 
         if (this.playlistQueue.playlist !== null) {
@@ -87,7 +70,7 @@ export class Queue {
                 }
             }
 
-            return this.playlistQueue.playlist.tracks[this.playlistQueue.trackIndex]
+            return this.playlistQueue.playlist.tracks[this.playlistQueue.trackIndex] ?? null
         }
 
         return null
