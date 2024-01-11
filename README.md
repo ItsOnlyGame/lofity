@@ -1,4 +1,5 @@
 # lofity
+Uses node 14, so beware.
 
 > A spotify alternative that supports both Youtube and Spotify
 
